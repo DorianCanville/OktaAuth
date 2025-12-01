@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OktaAuthApi/OktaAuthApi.csproj" />
+  <Project Path="OktaAuthWPF/OktaAuthWPF.csproj" />
+</Solution>
