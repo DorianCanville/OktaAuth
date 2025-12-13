@@ -1,12 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OktaAuthWPF.Service;
-using System;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OktaAuthWPF.ViewModel
 {
@@ -21,9 +16,9 @@ namespace OktaAuthWPF.ViewModel
         [ObservableProperty]
         private string _apiResponse = "";
 
-        public MainViewModel()
+        public MainViewModel(AuthService AuthService)
         {
-            _authService = new AuthService();
+            _authService = AuthService;
             // Réutilise le même HttpClient interne du service si besoin, sinon laisser par défaut
             _apiClient = new ApiClientService(_authService);
         }
@@ -32,25 +27,29 @@ namespace OktaAuthWPF.ViewModel
         private async Task Login()
         {
             StatusMessage = "Connexion en cours...";
-            var result = await _authService.Login();
+            bool result = await _authService.EnsureAuthenticatedAsync();
 
-            if (result.IsError)
+            if (result)
             {
-                StatusMessage = $"Erreur : {result.Error}";
-                return;
             }
 
-            StatusMessage = $"Connecté ! Bonjour {result.User.Identity.Name}";
+            //if (result.IsError)
+            //{
+            //    StatusMessage = $"Erreur : {result.Error}";
+            //    return;
+            //}
+
+            //StatusMessage = $"Connecté ! Bonjour {result.User.Identity.Name}";
         }
 
         [RelayCommand]
         private async Task CallApi()
         {
-            var apiUrl = "http://localhost:5000/WeatherForecast";
+            string apiUrl = "http://localhost:5000/WeatherForecast";
 
             try
             {
-                var json = await _apiClient.GetStringAsync(apiUrl);
+                string json = await _apiClient.GetStringAsync(apiUrl);
                 ApiResponse = "Succès API : \n" + json;
             }
             catch (UnauthorizedAccessException)
