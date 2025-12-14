@@ -1,7 +1,9 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using Duende.IdentityModel.OidcClient.Results;
+using Newtonsoft.Json;
 using OktaAuthWPF.Service;
 using OktaAuthWPF.Service.Browser;
+using OktaAuthWPF.Service.Object;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
@@ -22,17 +24,17 @@ public class AuthService
 
     public AuthService(UserContext userContext)
     {
-
         _userContext = userContext;
 
         OidcClientOptions options = new OidcClientOptions
         {
             Authority = "https://integrator-7886904.okta.com",
-            ClientId = "0oaxwt7ysa4ncvmt7697",
+            ClientId = "0oaxwt7ysa4ncvmt7697",//new 0oaybulu7i4m9buDJ697 //old 0oaxwt7ysa4ncvmt7697
             RedirectUri = "http://127.0.0.1:7890/callback",
             Scope = "openid profile email offline_access",
             Browser = new SystemBrowser(7890),
-            DisablePushedAuthorization = true
+            DisablePushedAuthorization = true,
+            LoadProfile = true
         };
 
         _oidcClient = new OidcClient(options);
@@ -51,27 +53,26 @@ public class AuthService
     }
 
 
-    public async Task<bool> EnsureAuthenticatedAsync()
+    public async Task<CurrentUserInfo> EnsureAuthenticatedAsync()
     {
         // Tentative silencieuse
         if (await TryRefreshAsync())
         {
-            return true;
+            return await GetUserInfoAsync();
         }
 
         // Sinon, affichage login Okta
-        LoginResult loginResult = await Login();
+        CurrentUserInfo currentUser = await Login();
 
         //_userContext.SetUser(new CurrentUserInfo()
         //{
         //    Email = loginResult.User.Identity.em
         //})
-        await GetUserInfoAsync();
 
-        return !loginResult.IsError;
+        return currentUser;
     }
 
-    public async Task<bool> GetUserInfoAsync()
+    public async Task<CurrentUserInfo> GetUserInfoAsync()
     {
         if (string.IsNullOrEmpty(_accessToken))
             throw new InvalidOperationException("Not authenticated");
@@ -81,21 +82,20 @@ public class AuthService
             new AuthenticationHeaderValue("Bearer", _accessToken);
 
         HttpResponseMessage response = await http.GetAsync(
-            "https://integrator-7886904.okta.com/oauth2/default/v1/userinfo"); // besoin de https://integrator-7886904.okta.com/oauth2/default pour avoir la même base de connection
+            "https://integrator-7886904.okta.com/oauth2/v1/userinfo"); // besoin de https://integrator-7886904.okta.com/oauth2/default pour avoir la même base de connection
 
-        //response.EnsureSuccessStatusCode();
-        string content = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Userinfo failed: {(int)response.StatusCode} {response.ReasonPhrase}: {content}");
+        response.EnsureSuccessStatusCode();
+
         string json = await response.Content.ReadAsStringAsync();
 
-        return true;
+        CurrentUserInfo userInfo = JsonConvert.DeserializeObject<CurrentUserInfo>(json);
 
-        //return JsonSerializer.Deserialize<UserInfo>(json)!;
+        _userContext.SetUser(userInfo);
+        return userInfo;
     }
 
 
-    public async Task<LoginResult> Login()
+    public async Task<CurrentUserInfo> Login()
     {
         LoginResult result = await _oidcClient.LoginAsync(new LoginRequest());
         if (!result.IsError)
@@ -116,7 +116,15 @@ public class AuthService
                 }
             }
         }
-        return result;
+
+        CurrentUserInfo userInfo = new CurrentUserInfo()
+        {
+            Email = result.User.FindFirst(c => c.Type == "email")?.Value,
+            Name = result.User.Identity?.Name
+        };
+        _userContext.SetUser(userInfo);
+
+        return userInfo;
     }
 
     public async Task<bool> TryRefreshAsync()
@@ -158,7 +166,7 @@ public class AuthService
             return true;
         }
 
-        // refresh failed -> forcer re-login and remove stored token
+        // refresh failed -> forcer re-login et remove stored token
         _accessToken = null;
         _refreshToken = null;
         try
@@ -290,7 +298,6 @@ public class AuthService
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern bool CredDelete(string target, CRED_TYPE type, int flags);
 }
-
 
 
 
@@ -443,4 +450,4 @@ public class AuthService
 //    "ES384",
 //    "ES512"
 //  ]
-//}
+//}//}

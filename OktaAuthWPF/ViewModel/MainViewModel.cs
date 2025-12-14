@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OktaAuthWPF.Service;
+using OktaAuthWPF.Service.Object;
 using System.Net.Http;
 
 namespace OktaAuthWPF.ViewModel
@@ -27,19 +28,15 @@ namespace OktaAuthWPF.ViewModel
         private async Task Login()
         {
             StatusMessage = "Connexion en cours...";
-            bool result = await _authService.EnsureAuthenticatedAsync();
+            CurrentUserInfo result = await _authService.EnsureAuthenticatedAsync();
 
-            if (result)
+            if (String.IsNullOrEmpty(result.Name))
             {
+                StatusMessage = "Erreur : échec de la récupération des informations utilisateur.";
+                return;
             }
 
-            //if (result.IsError)
-            //{
-            //    StatusMessage = $"Erreur : {result.Error}";
-            //    return;
-            //}
-
-            //StatusMessage = $"Connecté ! Bonjour {result.User.Identity.Name}";
+            StatusMessage = $"Connecté ! Bonjour {result.Name}";
         }
 
         [RelayCommand]
