@@ -1,9 +1,6 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace OktaAuthWPF.Service
 {
@@ -31,9 +28,9 @@ namespace OktaAuthWPF.Service
             if (requestFactory == null) throw new ArgumentNullException(nameof(requestFactory));
 
             // Première tentative
-            var request = requestFactory();
+            HttpRequestMessage request = requestFactory();
             AttachAccessToken(request);
-            var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (response.StatusCode != HttpStatusCode.Unauthorized)
             {
@@ -54,7 +51,7 @@ namespace OktaAuthWPF.Service
             }
 
             // Retenter une fois avec le nouveau token
-            var retryRequest = requestFactory();
+            HttpRequestMessage retryRequest = requestFactory();
             AttachAccessToken(retryRequest);
             return await _httpClient.SendAsync(retryRequest, cancellationToken).ConfigureAwait(false);
         }
@@ -87,7 +84,7 @@ namespace OktaAuthWPF.Service
         /// </summary>
         public async Task<string> GetStringAsync(string url, CancellationToken cancellationToken = default)
         {
-            var response = await SendAsync(() => new HttpRequestMessage(HttpMethod.Get, url), cancellationToken).ConfigureAwait(false);
+            HttpResponseMessage response = await SendAsync(() => new HttpRequestMessage(HttpMethod.Get, url), cancellationToken).ConfigureAwait(false);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 throw new UnauthorizedAccessException("Token invalide / non rafraîchi.");
