@@ -6,6 +6,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // 1. Ajouter les services
 builder.Services.AddControllers();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSwaggerGen();
+}
+
 // Récupérer la config
 string? authority = builder.Configuration["Okta:Authority"];
 string? audience = builder.Configuration["Okta:Audience"];

@@ -28,6 +28,7 @@ public class AuthService
 
         OidcClientOptions options = new OidcClientOptions
         {
+            //https://integrator-7886904.okta.com/.well-known/openid-configuration
             Authority = "https://integrator-7886904.okta.com/",
             ClientId = "0oaxwt7ysa4ncvmt7697",
             RedirectUri = "http://127.0.0.1:7890/callback",
@@ -101,7 +102,7 @@ public class AuthService
             new AuthenticationHeaderValue("Bearer", _accessToken);
 
         HttpResponseMessage response = await http.GetAsync(
-            "https://integrator-7886904.okta.com/oauth2/aus14kj3opm7wBa1S698/v1/userinfo");
+            "https://integrator-7886904.okta.com/oauth2/v1/userinfo");
 
         response.EnsureSuccessStatusCode();
 
