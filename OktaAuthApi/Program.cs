@@ -6,7 +6,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // 1. Ajouter les services
 builder.Services.AddControllers();
 
-// Récupérer la config
+// RÃ©cupÃ©rer la config
 string? authority = builder.Configuration["Okta:Authority"];
 string? audience = builder.Configuration["Okta:Audience"];
 
@@ -21,13 +21,13 @@ builder.Services.AddAuthentication(options =>
     options.Authority = authority;
     options.Audience = audience;
 
-    // Environnements : n'exposer les détails d'erreurs qu'en dev
+    // Environnements : n'exposer les dÃ©tails d'erreurs qu'en dev
     options.IncludeErrorDetails = builder.Environment.IsDevelopment();
 
-    // Exiger HTTPS pour la métadonnée si on n'est pas en dev
+    // Exiger HTTPS pour la mÃ©tadonnÃ©e si on n'est pas en dev
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 
-    // Ne pas sauvegarder automatiquement le token côté serveur
+    // Ne pas sauvegarder automatiquement le token cÃ´tÃ© serveur
     options.SaveToken = false;
 
     options.TokenValidationParameters = new TokenValidationParameters
@@ -44,17 +44,22 @@ builder.Services.AddAuthentication(options =>
 
 WebApplication app = builder.Build();
 
-// Sécurité transport : HSTS et redirection HTTPS en production
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
     app.UseHttpsRedirection();
 }
 
-app.UseAuthentication(); // <-- VITAL : Vérifie "Qui est-ce ?"
-app.UseAuthorization();  // <-- VITAL : Vérifie "A-t-il le droit ?"
+app.UseAuthentication(); // <-- VITAL : VÃ©rifie "Qui est-ce ?"
+app.UseAuthorization();  // <-- VITAL : VÃ©rifie "A-t-il le droit ?"
 
 app.MapControllers();
 
-// NOTE: En développement local vous pouvez rester en HTTP ; en production, configurez une URL HTTPS et certificats
+// NOTE: En dÃ©veloppement local vous pouvez rester en HTTP ; en production, configurez une URL HTTPS et certificats
 app.Run("http://localhost:5000");

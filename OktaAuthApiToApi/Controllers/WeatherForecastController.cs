@@ -1,26 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
+using OktaAuthApiToApi.Services;
 
-namespace OktaAuthApiToApi.Controllers
+namespace OktaAuthApiToApi.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class WeatherForecastController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
-    {
-        private static readonly string[] Summaries =
-        [
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        ];
+    private readonly ApiClientService _apiClient;
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+    public WeatherForecastController(ApiClientService apiClient)
+    {
+        _apiClient = apiClient;
+    }
+
+    /// <summary>
+    /// Proxifie l'appel vers OktaAuthApi en s'authentifiant via Okta (Client Credentials Flow).
+    /// </summary>
+    [HttpGet(Name = "GetWeatherForecast")]
+    public async Task<ContentResult> Get(CancellationToken cancellationToken)
+    {
+        // Récupère automatiquement un token Okta (mis en cache) et appelle OktaAuthApi
+        string json = await _apiClient.GetStringAsync("/WeatherForecast", cancellationToken);
+        return Content(json, "application/json");
     }
 }
