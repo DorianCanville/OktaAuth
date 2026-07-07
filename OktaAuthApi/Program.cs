@@ -14,6 +14,7 @@ if (builder.Environment.IsDevelopment())
 // Récupérer la config
 string? authority = builder.Configuration["Okta:Authority"];
 string? audience = builder.Configuration["Okta:Audience"];
+string[] clientIds = builder.Configuration.GetSection("Okta:ClientIds").Get<string[]>();
 
 // Authentication / JWT configuration with stricter validation
 builder.Services.AddAuthentication(options =>
@@ -44,6 +45,17 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = audience,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = ctx =>
+        {
+            string? cid = ctx.Principal?.FindFirst("cid")?.Value;
+            if (cid == null || !clientIds.Contains(cid))
+                ctx.Fail($"client_id non autorisé : '{cid}'.");
+            return Task.CompletedTask;
+        }
     };
 });
 
