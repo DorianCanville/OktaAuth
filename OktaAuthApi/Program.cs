@@ -1,21 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // 1. Ajouter les services
 builder.Services.AddControllers();
 
 // Récupérer la config
-var authority = builder.Configuration["Okta:Authority"];
-var audience = builder.Configuration["Okta:Audience"];
+string? authority = builder.Configuration["Okta:Authority"];
+string? audience = builder.Configuration["Okta:Audience"];
 
 // Authentication / JWT configuration with stricter validation
 builder.Services.AddAuthentication(options =>
@@ -45,11 +38,11 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = audience,
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = true
+        ValidateIssuerSigningKey = true,
     };
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Sécurité transport : HSTS et redirection HTTPS en production
 if (!app.Environment.IsDevelopment())

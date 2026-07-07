@@ -28,13 +28,32 @@ public class AuthService
 
         OidcClientOptions options = new OidcClientOptions
         {
-            Authority = "https://integrator-7886904.okta.com",
-            ClientId = "0oaxwt7ysa4ncvmt7697",//new 0oaybulu7i4m9buDJ697 //old 0oaxwt7ysa4ncvmt7697
+            Authority = "https://integrator-7886904.okta.com/",
+            ClientId = "0oaxwt7ysa4ncvmt7697",
             RedirectUri = "http://127.0.0.1:7890/callback",
             Scope = "openid profile email offline_access",
             Browser = new SystemBrowser(7890),
             DisablePushedAuthorization = true,
-            LoadProfile = true
+            LoadProfile = true,
+
+            //or with custom security api 
+            //Authority = "https://integrator-7886904.okta.com/oauth2/ausxwu8h29xZzlSMp697",
+            //ClientId = "0oaxwt7ysa4ncvmt7697",
+            //RedirectUri = "http://127.0.0.1:7890/callback",
+            //Scope = "openid profile email offline_access",
+            //Browser = new SystemBrowser(7890),
+            //DisablePushedAuthorization = true,
+            //LoadProfile = true,
+            //Policy = new Policy
+            //{
+            //    Discovery = new DiscoveryPolicy
+            //    {
+            //        AdditionalEndpointBaseAddresses =
+            //        {
+            //            "https://integrator-7886904.okta.com/oauth2"
+            //        }
+            //    }
+            //}
         };
 
         _oidcClient = new OidcClient(options);
@@ -44,7 +63,7 @@ public class AuthService
         {
             _refreshToken = LoadRefreshTokenFromCredentialManager();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             //Log.Warn("CredentialManager read failed", ex);
             // Ignore any errors when reading credentials; treat as no token
@@ -82,7 +101,7 @@ public class AuthService
             new AuthenticationHeaderValue("Bearer", _accessToken);
 
         HttpResponseMessage response = await http.GetAsync(
-            "https://integrator-7886904.okta.com/oauth2/v1/userinfo"); // besoin de https://integrator-7886904.okta.com/oauth2/default pour avoir la même base de connection
+            "https://integrator-7886904.okta.com/oauth2/aus14kj3opm7wBa1S698/v1/userinfo");
 
         response.EnsureSuccessStatusCode();
 
@@ -110,7 +129,7 @@ public class AuthService
                 {
                     SaveRefreshTokenToCredentialManager(_refreshToken);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Log.Warn("CredentialManager write failed", ex);
                 }
@@ -157,7 +176,7 @@ public class AuthService
                 {
                     SaveRefreshTokenToCredentialManager(_refreshToken);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //Log.Warn("CredentialManager read failed", ex);
                 }
