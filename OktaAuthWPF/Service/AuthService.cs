@@ -21,6 +21,7 @@ public class AuthService
 
     // Target name used in Windows Credential Manager   
     private const string CredentialTarget = "OktaAuthWPF_RefreshToken";
+    private const string BaseAuthority = "https://integrator-7886904.okta.com/";
 
     public AuthService(UserContext userContext)
     {
@@ -28,9 +29,9 @@ public class AuthService
 
         OidcClientOptions options = new OidcClientOptions
         {
-            //https://integrator-7886904.okta.com/.well-known/openid-configuration
-            Authority = "https://integrator-7886904.okta.com/",
-            ClientId = "0oaxwt7ysa4ncvmt7697",
+            ////// more url info : https://integrator-7886904.okta.com/.well-known/openid-configuration
+            Authority = BaseAuthority,
+            ClientId = "0oawa9jjudL8ghwsW697",
             RedirectUri = "http://127.0.0.1:7890/callback",
             Scope = "openid profile email offline_access",
             Browser = new SystemBrowser(7890),
@@ -39,7 +40,7 @@ public class AuthService
 
             //or with custom security api 
             //Authority = "https://integrator-7886904.okta.com/oauth2/ausxwu8h29xZzlSMp697",
-            //ClientId = "0oaxwt7ysa4ncvmt7697",
+            //ClientId = "0oawa9jjudL8ghwsW697",
             //RedirectUri = "http://127.0.0.1:7890/callback",
             //Scope = "openid profile email offline_access",
             //Browser = new SystemBrowser(7890),
@@ -102,7 +103,7 @@ public class AuthService
             new AuthenticationHeaderValue("Bearer", _accessToken);
 
         HttpResponseMessage response = await http.GetAsync(
-            "https://integrator-7886904.okta.com/oauth2/v1/userinfo");
+            BaseAuthority + "/oauth2/v1/userinfo");
 
         response.EnsureSuccessStatusCode();
 
